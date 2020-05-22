@@ -2,10 +2,10 @@ from models.employee import EmployeeModel
 from werkzeug.security import safe_str_cmp
 
 
-def authenticate(username, employee_id):
-    user = EmployeeModel.find_by_username(username)
-    if user and safe_str_cmp(user.password, employee_id):
-        return user
+def authenticate(unique_id):
+    employee = EmployeeModel.find_by_id(unique_id)
+    if employee and safe_str_cmp(employee.employee_id, unique_id):
+        return employee
 
 
 def identity(payload):

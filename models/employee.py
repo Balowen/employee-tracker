@@ -1,5 +1,4 @@
 from db import db
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 
@@ -10,7 +9,7 @@ class EmployeeModel(db.Model):
     name = db.Column(db.String(80), nullable=False)
     surname = db.Column(db.String(80), nullable=False)
     department = db.Colum(db.String(30), default="IT", nullable=False)
-    employee_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4(), unique=True, nullable=False)
+    employee_id = db.Column(db.String(32), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
     def __init__(self, name, surname, department, employee_id):
         self.name = name
@@ -37,6 +36,6 @@ class EmployeeModel(db.Model):
 
     @classmethod
     def find_by_id(cls, _id):
-        return cls.query.filter_by(id=_id).first()
+        return cls.query.filter_by(employee_id=_id).first()
 
 
