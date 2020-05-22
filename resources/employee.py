@@ -1,5 +1,7 @@
-from flask_jwt import jwt_required, current_identity
 from flask_restful import Resource, reqparse
+from flask_jwt_extended import jwt_required, create_access_token
+from werkzeug.security import safe_str_cmp
+
 import uuid
 
 from models.employee import EmployeeModel
@@ -45,7 +47,7 @@ class Employee(Resource):
     #                     help="This field cannot be left blank!")
 
     @classmethod
-   # @jwt_required()
+    @jwt_required
     def get(cls, employee_id):
         employee = EmployeeModel.find_by_id(employee_id)
         if not employee:
@@ -56,7 +58,7 @@ class Employee(Resource):
             employee.start_working_hours"""
         return employee.json()
 
-    @jwt_required()
+    @jwt_required
     def put(self, employee_id):
         """Method to update employee's leaving hour"""
         # data = Employee.parser.parse_args()
@@ -71,3 +73,28 @@ class Employee(Resource):
         employee.save_to_db()
 
         return employee.json()
+
+
+class EmployeeLogin(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('employee_id',
+                        type=str,
+                        required=True,
+                        help="This field cannot be left blank!")
+
+    @classmethod
+    def post(cls):
+        # get data from parser
+        data = cls.parser.parse_args()
+
+        # find user in database
+        employee = EmployeeModel.find_by_id(data['employee_id'])
+
+        # check id/hash
+        if employee and safe_str_cmp(employee.employee_id, data['employee_id']):
+            access_token = create_access_token(identity=employee.employee_id)
+            return {
+                'access_token': access_token
+            }, 200
+
+        return {'message': 'Invalid credentials'}, 401
