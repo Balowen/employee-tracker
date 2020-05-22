@@ -2,16 +2,15 @@ import os
 
 from flask import Flask
 from flask_restful import Api
-from flask_jwt import JWT
+from flask_jwt_extended import JWTManager
 
-from security import authenticate, identity
-from resources.employee import Employee, EmployeeRegister
+from resources.employee import Employee, EmployeeRegister, EmployeeLogin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False    # turns off flask_sqlalchemy modification tracker
 app.config['PROPAGATE_EXCEPTIONS'] = True
-app.secret_key = 'tracker'
+app.secret_key = 'tracker'  # or this app.config['JWT_SECRET_KEY']
 
 
 api = Api(app)
@@ -22,8 +21,9 @@ api = Api(app)
 #     db.create_all()
 
 
-jwt = JWT(app, authenticate, identity)  # creates /auth endpoint
+jwt = JWTManager(app)
 api.add_resource(EmployeeRegister, '/register')
+api.add_resource(EmployeeLogin, '/login')
 api.add_resource(Employee, '/employee/<string:employee_id>')
 
 if __name__ == '__main__':
