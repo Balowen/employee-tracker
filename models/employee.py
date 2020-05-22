@@ -8,7 +8,7 @@ class EmployeeModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
     surname = db.Column(db.String(80), nullable=False)
-    department = db.Colum(db.String(30), default="IT", nullable=False)
+    department = db.Column(db.String(30), default="IT", nullable=False)
     employee_id = db.Column(db.String(32), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
     def __init__(self, name, surname, department, employee_id):
