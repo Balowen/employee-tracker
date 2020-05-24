@@ -7,6 +7,7 @@ import uuid
 from models.employee import EmployeeModel
 from models.workday import WorkdayModel
 
+
 class EmployeeRegister(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('name',
@@ -40,22 +41,14 @@ class EmployeeRegister(Resource):
 class Employee(Resource):
     """Used to check if this id_card belongs to real employee"""
 
-    # parser = reqparse.RequestParser()   # for put request
-    # parser.add_argument('employee_id',
-    #                     type=str,
-    #                     required=True,
-    #                     help="This field cannot be left blank!")
-
     @classmethod
     @jwt_required
     def get(cls, employee_id):
+        """ endpoint for testing only"""
         employee = EmployeeModel.find_by_id(employee_id)
         if not employee:
             return {'message': 'Employee not found, or you do not have the access'}, 404
-        else:
-            """TODO:
-            welcome :)
-            employee.start_working_hours"""
+
         return employee.json()
 
     @jwt_required
@@ -65,12 +58,24 @@ class Employee(Resource):
 
         employee = EmployeeModel.find_by_id(employee_id)
         if employee is None:
-            return {'message': "There is no employee with this ID, or your access_token is invalid."}
+            return {'message': "There is no employee with this ID, or your access_token is invalid."}, 404
         else:
-            """TODO:
-            employee.update_leaving_hours()"""
+            """ check if employee entered the building today"""
+            if WorkdayModel.find_latest_workday(employee.id):
+                """checking if employee already entered building today"""
+                last_workday = WorkdayModel.find_latest_workday(employee.id)
 
-        employee.save_to_db()
+                if last_workday.time_in.day == datetime.today().day:
+                    last_workday.time_out = datetime.today()
+                    # calculate hours_worked|   .time converts to H:M
+                    duration = last_workday.time_out - last_workday.time_in
+                    # duration is a datetime.timedelta
+                    duration = (datetime.min + duration).time()
+                    last_workday.hours_worked = duration
+                    try:
+                        last_workday.save_to_db()
+                    except:
+                        return {'message': 'An error occurred updating worked hours'}, 500
 
         return employee.json()
 
@@ -93,26 +98,31 @@ class EmployeeLogin(Resource):
         # check id/hash
         if employee and safe_str_cmp(employee.employee_id, data['employee_id']):
             access_token = create_access_token(identity=employee.employee_id)
-
-            if WorkdayModel.find_latest_workday(employee.employee_id):
+            if WorkdayModel.find_latest_workday(employee.id):
                 """checking if employee already entered building today"""
-                last_workday = WorkdayModel.find_latest_workday(employee.employee_id)
+                last_workday = WorkdayModel.find_latest_workday(employee.id)
 
                 if last_workday.time_in.day == datetime.today().day:
                     """ if he entered today, only the token is returned and the workday continues"""
                     return {
                                'access_token': access_token
                            }, 200
+
+                return{
+                        'access_token': access_token,
+                        'message': 'already entered'
+                    }
+
             else:
-                """start new working day"""
-                workday = WorkdayModel(employee.name, employee.employee_id)
+                """thats a first entrance today"""
+                workday = WorkdayModel(employee.name, employee.id)
                 try:
                     workday.save_to_db()
                 except:
                     return {'message': "An error occured creating the workingday."}, 500
 
-                return{
-                    'access_token': access_token
+                return {
+                    'access_token': access_token,
+                    'message': 'first entrance'
                 }
-
         return {'message': 'Invalid credentials'}, 401

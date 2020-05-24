@@ -8,7 +8,7 @@ class WorkdayModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     time_in = db.Column(db.DateTime(timezone=False), default=datetime.today)
     time_out = db.Column(db.DateTime(timezone=False))
-    hours_worked = db.Column(db.Time(), default=None)     # assign datetime.time() to it?
+    hours_worked = db.Column(db.Time, default=None)     # assign datetime.time() to it?
     worker_name = db.Column(db.String(80))
 
     worker_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
@@ -37,7 +37,7 @@ class WorkdayModel(db.Model):
 
     @classmethod
     def find_latest_workday(cls, _id):
-        return cls.query.order_by(cls.time_in.desc()).first()
+        return cls.query.filter_by(worker_id=_id).order_by(cls.time_in.desc()).first()
 
     @classmethod
     def find_employee_workdays(cls, _id):
