@@ -29,3 +29,15 @@ class WorkdayModel(db.Model):
     # todo
     # POST: save the start date(time_in) and assign employees credentials
     # PUT: update time_out (leaving hours), update hours_worked
+
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
+
+    @classmethod
+    def find_employee_workdays(cls, _id):
+        return cls.query.filter_by(worker_id=_id).all()
+
+    def save_to_db(self):
+        db.session.add(self)
+        db.session.commit()
