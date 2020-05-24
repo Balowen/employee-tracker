@@ -35,6 +35,10 @@ class WorkdayModel(db.Model):
         return cls.query.all()
 
     @classmethod
+    def find_latest_workday(cls, _id):
+        return cls.query.order_by(cls.time_in.desc()).first()
+
+    @classmethod
     def find_employee_workdays(cls, _id):
         return cls.query.filter_by(worker_id=_id).all()
 

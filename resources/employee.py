@@ -1,11 +1,11 @@
 from flask_restful import Resource, reqparse
 from flask_jwt_extended import jwt_required, create_access_token
 from werkzeug.security import safe_str_cmp
-
+from datetime import datetime
 import uuid
 
 from models.employee import EmployeeModel
-
+from models.workday import WorkdayModel
 
 class EmployeeRegister(Resource):
     parser = reqparse.RequestParser()
@@ -93,8 +93,27 @@ class EmployeeLogin(Resource):
         # check id/hash
         if employee and safe_str_cmp(employee.employee_id, data['employee_id']):
             access_token = create_access_token(identity=employee.employee_id)
-            return {
-                'access_token': access_token
-            }, 200
+
+            if WorkdayModel.find_latest_workday(employee.employee_id):
+                """checking if employee already entered building today"""
+                last_workday = WorkdayModel.find_latest_workday(employee.employee_id)
+
+                if last_workday.time_in.day == datetime.today().day:
+                    """ if he entered today, only the token is returned and the workday continues"""
+                    return {
+                               'access_token': access_token
+                           }, 200
+            else:
+                """start new working day"""
+                workday = WorkdayModel(employee.employee_id)
+                try:
+                    workday.save_to_db()
+                except:
+                    return {'message': "An error occured creating the workingday."}, 500
+
+                return{
+                    'access_token': access_token,
+                    'workday:': workday.json()
+                }
 
         return {'message': 'Invalid credentials'}, 401
