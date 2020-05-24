@@ -105,15 +105,14 @@ class EmployeeLogin(Resource):
                            }, 200
             else:
                 """start new working day"""
-                workday = WorkdayModel(employee.employee_id)
+                workday = WorkdayModel(employee.name, employee.employee_id)
                 try:
                     workday.save_to_db()
                 except:
                     return {'message': "An error occured creating the workingday."}, 500
 
                 return{
-                    'access_token': access_token,
-                    'workday:': workday.json()
+                    'access_token': access_token
                 }
 
         return {'message': 'Invalid credentials'}, 401

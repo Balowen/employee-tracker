@@ -14,7 +14,8 @@ class WorkdayModel(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('employees.id'))
     worker = db.relationship('EmployeeModel')
 
-    def __init__(self, worker_id):
+    def __init__(self, worker_name, worker_id):
+        self.worker_name = worker_name
         self.worker_id = worker_id
 
     def json(self):

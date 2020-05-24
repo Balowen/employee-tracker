@@ -11,6 +11,8 @@ class EmployeeModel(db.Model):
     department = db.Column(db.String(30), default="IT", nullable=False)
     employee_id = db.Column(db.String(32), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
+    workday = db.relationship('WorkdayModel', lazy='dynamic')
+
     def __init__(self, name, surname, department, employee_id):
         self.name = name
         self.surname = surname
@@ -19,7 +21,6 @@ class EmployeeModel(db.Model):
 
     def json(self):
         return{
-            'id': self.id,
             'name': self.name,
             'surname': self.surname,
             'department': self.department,
