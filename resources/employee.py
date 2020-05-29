@@ -24,7 +24,9 @@ class EmployeeRegister(Resource):
                         help="This field cannot be left blank!")
 
     def post(self):
-        """registers new employee if it doesn't exist already"""
+        """registers new employee if it doesn't exist already,
+            this endpoint simulates assigning a new ID card to an employee,
+            clearly it should be more safe, but it's just a proof-of-concept"""
         data = EmployeeRegister.parser.parse_args()
         new_employee_id = str(uuid.uuid4())
 
@@ -51,10 +53,9 @@ class Employee(Resource):
 
         return employee.json()
 
-    @jwt_required
+    # @jwt_required
     def put(self, employee_id):
         """Method to update employee's leaving hour"""
-        # data = Employee.parser.parse_args()
 
         employee = EmployeeModel.find_by_id(employee_id)
         if employee is None:
@@ -77,7 +78,7 @@ class Employee(Resource):
                     except:
                         return {'message': 'An error occurred updating worked hours'}, 500
 
-        return employee.json()
+        return last_workday.json()
 
 
 class EmployeeLogin(Resource):
@@ -109,12 +110,11 @@ class EmployeeLogin(Resource):
                            }, 200
 
                 return{
-                        'access_token': access_token,
-                        'message': 'already entered'
-                    }
+                        'access_token': access_token
+                    }, 200
 
             else:
-                """thats a first entrance today"""
+                """First entrance today, start a workday"""
                 workday = WorkdayModel(employee.name, employee.id)
                 try:
                     workday.save_to_db()
@@ -122,7 +122,6 @@ class EmployeeLogin(Resource):
                     return {'message': "An error occured creating the workingday."}, 500
 
                 return {
-                    'access_token': access_token,
-                    'message': 'first entrance'
+                    'access_token': access_token
                 }
         return {'message': 'Invalid credentials'}, 401
