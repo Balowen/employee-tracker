@@ -9,7 +9,7 @@ class EmployeeModel(db.Model):
     name = db.Column(db.String(80), nullable=False)
     surname = db.Column(db.String(80), nullable=False)
     department = db.Column(db.String(30), default="IT", nullable=False)
-    employee_id = db.Column(db.String(32), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
+    employee_id = db.Column(db.String(40), default=lambda: str(uuid.uuid4()), unique=True, nullable=False)
 
     workday = db.relationship('WorkdayModel', lazy='dynamic')
 
