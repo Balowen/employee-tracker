@@ -108,13 +108,19 @@ class EmployeeLogin(Resource):
                     return {
                                'access_token': access_token
                            }, 200
+                else:
+                    workday = WorkdayModel(employee.name, employee.id)
+                    try:
+                        workday.save_to_db()
+                    except:
+                        return {'message': "An error occured creating the workingday."}, 500
 
-                return{
+                    return {
                         'access_token': access_token
-                    }, 200
+                    }
 
             else:
-                """First entrance today, start a workday"""
+                """First entrance, start a workday"""
                 workday = WorkdayModel(employee.name, employee.id)
                 try:
                     workday.save_to_db()
