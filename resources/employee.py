@@ -78,7 +78,9 @@ class Employee(Resource):
                     except:
                         return {'message': 'An error occurred updating worked hours'}, 500
 
-        return last_workday.json()
+                    return last_workday.json()
+
+        return {'message': 'First use of card, or employee did not start work today'}, 200
 
 
 class EmployeeLogin(Resource):
